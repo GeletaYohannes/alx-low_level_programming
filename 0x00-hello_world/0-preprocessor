@@ -1,0 +1,3 @@
+#!/bin/bashgcc 
+-E $CFILE -o c
+
