@@ -1,33 +1,27 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include "main.h"
 /**
-* main - program that multiplies two positive numbers.
-* @argc: number of command line arguments.
-* @argv: array containing the program command line arguments
-* Return: 0
+* main - multiplies two positive numbers
+* @argc: n arguments
+* @argv: args
+* Return: int
 */
 int main(int argc, char *argv[])
 {
-int i = 1;
-int num1;
-int num2;
-int mul;
-while (i < argc)
+unsigned long mul;
+int i, j;
+if (argc != 3)
+{ printf("Error\n");
+exit(98); }
+for (i = 1; i < argc; i++)
 {
-if (!isdigit(*argv[i]))
+for (j = 0; argv[i][j] != '\0'; j++)
 {
-printf("Error\n");
-exit(98);
-}
-else
-{
-num1 = atoi(argv[1]);
-num2 = atoi(argv[2]);
-mul = num1 *num2;
-i++;
+if (argv[i][j] > 57 || argv[i][j] < 48)
+{  printf("Error\n");
+exit(98); }
 }
 }
-printf("%d\n", mul);
+mul = atol(argv[1]) * atol(argv[2]);
+printf("%lu\n", mul);
 return (0);
 }
