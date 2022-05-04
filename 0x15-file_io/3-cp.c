@@ -1,92 +1,72 @@
 #include "main.h"
+#include <stdio.h>
 
 /**
-* main - copies the content of a file to another file
-* @argc: argument count
-* @argv: argument list
-*
-* Return: 0 on success
-*/
-
-int main(int argc, char **argv)
+ * error_file - checks if files can be opened.
+ * @file_from: file_from.
+ * @file_to: file_to.
+ * @argv: arguments vector.
+ * Return: no return.
+ */
+void error_file(int file_from, int file_to, char *argv[])
 {
-	int f_d_from, f_d_to, c_f_d_from, c_f_d_to;
-	ssize_t r_bytes, w_bytes;
-	char *buffer;
+	if (file_from == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
+		exit(98);
+	}
+	if (file_to == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]);
+		exit(99);
+	}
+}
 
-	r_bytes = 1;
+/**
+ * main - check the code for Holberton School students.
+ * @argc: number of arguments.
+ * @argv: arguments vector.
+ * Return: Always 0.
+ */
+int main(int argc, char *argv[])
+{
+	int file_from, file_to, err_close;
+	ssize_t nchars, nwr;
+	char buf[1024];
 
 	if (argc != 3)
-		exit_prog("Usage: cp file_from file_to", 97, NULL, 0, 0);
-
-	f_d_from = open(argv[1], O_RDONLY);
-	if (f_d_from == -1)
-		exit_prog("Error: Can't read from file", 98, argv[1], 0, 1);
-
-	f_d_to = open(argv[2], O_WRONLY | O_TRUNC | O_CREAT, 00664);
-	if (f_d_to == -1)
-		exit_prog("Error: Can't write to", 99, argv[2], 0, 1);
-
-	buffer = safe_buffer(argv[2]);
-
-	while (r_bytes > 0)
 	{
-		r_bytes = read(f_d_from, buffer, 1024);
-		w_bytes = write(f_d_to, buffer, r_bytes);
-
-		if (w_bytes == -1)
-			exit_prog("Error: Can't write to", 99, argv[2], 0, 1);
+		dprintf(STDERR_FILENO, "%s\n", "Usage: cp file_from file_to");
+		exit(97);
 	}
-	if (r_bytes == -1)
-		exit_prog("Error: Can't read from file", 98, argv[1], 0, 1);
 
-	free(buffer);
-	c_f_d_from = close(f_d_from);
-	c_f_d_to = close(f_d_to);
+	file_from = open(argv[1], O_RDONLY);
+	file_to = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC | O_APPEND, 0664);
+	error_file(file_from, file_to, argv);
 
-	if (c_f_d_from == -1)
-		exit_prog("Error: Can't close fd", 100, NULL, f_d_from, 2);
-	if (c_f_d_to == -1)
-		exit_prog("Error: Can't close fd", 100, NULL, f_d_to, 2);
+	nchars = 1024;
+	while (nchars == 1024)
+	{
+		nchars = read(file_from, buf, 1024);
+		if (nchars == -1)
+			error_file(-1, 0, argv);
+		nwr = write(file_to, buf, nchars);
+		if (nwr == -1)
+			error_file(0, -1, argv);
+	}
+
+	err_close = close(file_from);
+	if (err_close == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
+		exit(100);
+	}
+
+	err_close = close(file_to);
+	if (err_close == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
+		exit(100);
+	}
 	return (0);
-}
-
-/**
-* exit_prog - exits the program with a message
-* @message: message to be printed
-* @e_code: exit code
-* @filename: the filename
-* @f_d: the file desccriptor
-* @flag: flags, 0-> none, 1-> string, 2 -> int
-*
-* Return: Always void
-*/
-void exit_prog(char *message, int e_code, char *filename, int f_d, int flag)
-{
-	if (flag == 0)
-		dprintf(STDERR_FILENO, "%s\n", message);
-	else if (flag == 1)
-		dprintf(STDERR_FILENO, "%s %s\n", message, filename);
-	else if (flag == 2)
-		dprintf(STDERR_FILENO, "%s %d\n", message, f_d);
-
-	exit(e_code);
-}
-
-/**
-* safe_buffer - safely allocate memory
-* @filename: the filename
-*
-* Return: pointer to memory
-*/
-void *safe_buffer(char *filename)
-{
-	char *buffer;
-
-	buffer = malloc(sizeof(char) * 1024);
-
-	if (buffer == NULL)
-		exit_prog("Error: Can't write to", 99, filename, 0, 1);
-
-	return (buffer);
 }
